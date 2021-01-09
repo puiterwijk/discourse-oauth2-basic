@@ -62,6 +62,42 @@ describe OAuth2BasicAuthenticator do
       expect(result.email_valid).to eq(false)
     end
 
+    it "can force a list of groups with the groups attribute" do
+      group1 = Fabricate(:group, name: 'group1')
+      group2 = Fabricate(:group, name: 'group2')
+
+      SiteSetting.oauth2_synchronize_groups = true
+
+      authenticator.stubs(:fetch_user_details).returns(email: user.email, user_id: 'id', groups: [])
+      result = authenticator.after_authenticate(auth)
+      group1.reload
+      group2.reload
+      expect(group1.usernames).to eq("")
+      expect(group2.usernames).to eq("")
+
+      authenticator.stubs(:fetch_user_details).returns(email: user.email, user_id: 'id', groups: ["group2"])
+      result = authenticator.after_authenticate(auth)
+      group1.reload
+      group2.reload
+      expect(group1.usernames).to eq("")
+      expect(group2.usernames).to eq(user.username)
+
+      authenticator.stubs(:fetch_user_details).returns(email: user.email, user_id: 'id', groups: [])
+      result = authenticator.after_authenticate(auth)
+      group1.reload
+      group2.reload
+      expect(group1.usernames).to eq("")
+      expect(group2.usernames).to eq("")
+
+      SiteSetting.oauth2_synchronize_groups = true
+      authenticator.stubs(:fetch_user_details).returns(email: user.email, user_id: 'id', groups: ["group2"])
+      result = authenticator.after_authenticate(auth)
+      group1.reload
+      group2.reload
+      expect(group1.usernames).to eq("")
+      expect(group2.usernames).to eq("")
+    end
+
     it 'doesnt affect the site setting' do
       SiteSetting.oauth2_email_verified = true
       authenticator.stubs(:fetch_user_details).returns(email: user.email, email_verified: false)

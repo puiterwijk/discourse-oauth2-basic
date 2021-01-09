@@ -34,6 +34,7 @@ login:
   oauth2_json_avatar_path: ''
   oauth2_email_verified: false
   oauth2_overrides_email: false
+  oauth2_synchronize_groups: false
   oauth2_send_auth_header: true
   oauth2_send_auth_body: true
   oauth2_debug_auth: false

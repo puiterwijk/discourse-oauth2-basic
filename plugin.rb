@@ -204,6 +204,7 @@ class ::OAuth2BasicAuthenticator < Auth::ManagedAuthenticator
         json_walk(result, user_json, :email)
         json_walk(result, user_json, :email_verified)
         json_walk(result, user_json, :avatar)
+        json_walk(result, user_json, :groups)
       end
       result
     else
@@ -220,6 +221,10 @@ class ::OAuth2BasicAuthenticator < Auth::ManagedAuthenticator
     SiteSetting.oauth2_overrides_email
   end
 
+  def should_synchronize_groups?
+    SiteSetting.oauth2_synchronize_groups
+  end
+
   def after_authenticate(auth, existing_account: nil)
     log("after_authenticate response: \n\ncreds: #{auth['credentials'].to_hash}\nuid: #{auth['uid']}\ninfo: #{auth['info'].to_hash}\nextra: #{auth['extra'].to_hash}")
 
@@ -228,7 +233,7 @@ class ::OAuth2BasicAuthenticator < Auth::ManagedAuthenticator
         auth['uid'] = fetched_user_details[:user_id] if fetched_user_details[:user_id]
         auth['info']['nickname'] = fetched_user_details[:username] if fetched_user_details[:username]
         auth['info']['image'] = fetched_user_details[:avatar] if fetched_user_details[:avatar]
-        ['name', 'email', 'email_verified'].each do |property|
+        ['name', 'email', 'email_verified', 'groups'].each do |property|
           auth['info'][property] = fetched_user_details[property.to_sym] if fetched_user_details[property.to_sym]
         end
       else
